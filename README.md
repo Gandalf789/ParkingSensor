@@ -1,4 +1,4 @@
-# VL53L0X library for Arduino
+# VL53L0X non-Arduino library
 
 Version: 1.0.2<br>
 Release date: 2017 Jun 27<br>
@@ -7,61 +7,26 @@ Release date: 2017 Jun 27<br>
 
 ## Summary
 
-This is a library for the Arduino IDE that helps interface with ST's [VL53L0X time-of-flight distance sensor](https://www.pololu.com/product/2490). The library makes it simple to configure the sensor and read range data from it via I&sup2;C.
+This is a C library that helps to interface with ST's [VL53L0X time-of-flight distance sensor](https://www.pololu.com/product/2490). 
+It makes it simple to configure the sensor and read range data from it via I&sup2;C.
+
+While I was able to get ST's original API running, it used > 26 kB (of 32 kB) of program memory. This library, while having somewhat reduced functionality, uses only about 6 kB.
 
 ## Supported platforms
 
-This library is designed to work with the Arduino IDE versions 1.6.x or later; we have not tested it with earlier versions.  This library should support any Arduino-compatible board, including the [Pololu A-Star 32U4 controllers](https://www.pololu.com/category/149/a-star-programmable-controllers).
+This library is designed to work with AVR-GCC and has been tested with an Arduino Pro Mini (without the Arduino IDE). The library comes with a running example. That means, you'll get a complete development environment here. There's a Makefile, some slim UART printing functions, a complete set of I2C master communication functions and my very own implementation of the `millis()` function (shamelessly stolen from the Arduino lib.).
 
 ## Getting started
-
-### Hardware
-
-A [VL53L0X carrier](https://www.pololu.com/product/2490) can be purchased from Pololu's website.  Before continuing, careful reading of the [product page](https://www.pololu.com/product/2490) as well as the VL53L0X datasheet is recommended.
-
-Make the following connections between the Arduino and the VL53L0X board:
-
-#### 5V Arduino boards
-
-(including Arduino Uno, Leonardo, Mega; Pololu A-Star 32U4)
-
-    Arduino   VL53L0X board
-    -------   -------------
-         5V - VIN
-        GND - GND
-        SDA - SDA
-        SCL - SCL
-
-#### 3.3V Arduino boards
-
-(including Arduino Due)
-
-    Arduino   VL53L0X board
-    -------   -------------
-        3V3 - VIN
-        GND - GND
-        SDA - SDA
-        SCL - SCL
-
-### Software
-
-If you are using version 1.6.2 or later of the [Arduino software (IDE)](http://www.arduino.cc/en/Main/Software), you can use the Library Manager to install this library:
-
-1. In the Arduino IDE, open the "Sketch" menu, select "Include Library", then "Manage Libraries...".
-2. Search for "VL53L0X".
-3. Click the VL53L0X entry in the list.
-4. Click "Install".
-
-If this does not work, you can manually install the library:
-
-1. Download the [latest release archive from GitHub](https://github.com/pololu/vl53l0x-arduino/releases) and decompress it.
-2. Rename the folder "vl53l0x-arduino-master" to "VL53L0X".
-3. Move the "VL53L0X" folder into the "libraries" directory inside your Arduino sketchbook directory.  You can view your sketchbook location by opening the "File" menu and selecting "Preferences" in the Arduino IDE.  If there is not already a "libraries" folder in that location, you should make the folder yourself.
-4. After installing the library, restart the Arduino IDE.
+See the notes of the [original C++ Arduino library](https://github.com/pololu/vl53l0x-arduino).
 
 ## Examples
+Connect an Arduino Pro Mini to `/dev/ttyUSB0` and ...
 
-Several example sketches are available that show how to use the library. You can access them from the Arduino IDE by opening the "File" menu, selecting "Examples", and then selecting "VL53L0X". If you cannot find these examples, the library was probably installed incorrectly and you should retry the installation instructions above.
+```C
+  make bootload
+```
+
+This will compile, flash (avrdude) and open a terminal window for debugging (miniterm).
 
 ## ST's VL53L0X API and this library
 
