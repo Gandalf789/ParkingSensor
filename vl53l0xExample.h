@@ -10,7 +10,7 @@
 #define PIN_I2C_SCL 	PC5
 
 // Constants
-#define BAUD 			38400	// Serial baudrate for user interface
+#define BAUD 			115200	// Serial baudrate for user interface
 
 // Pseudo functions for Clearing, Setting and Testing bits
 #define SBI(reg, bit) 		( reg |=  ( 1 << bit ) )

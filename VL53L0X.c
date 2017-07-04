@@ -787,32 +787,51 @@ void stopContinuous(void)
 // Returns a range reading in millimeters when continuous mode is active
 // (readRangeSingleMillimeters() also calls this function after starting a
 // single-shot range measurement)
-uint16_t readRangeContinuousMillimeters(void)
-{
+// extraStats provides additional info for this measurment. Set to 0 if not needed.
+uint16_t readRangeContinuousMillimeters( statInfo_t *extraStats ) {
+  uint8_t tempBuffer[12];
+  uint16_t temp;
   startTimeout();
-  while ((readReg(RESULT_INTERRUPT_STATUS) & 0x07) == 0)
-  {
+  while ((readReg(RESULT_INTERRUPT_STATUS) & 0x07) == 0) {
     if (checkTimeoutExpired())
     {
       g_isTimeout = true;
       return 65535;
     }
   }
-
-  // assumptions: Linearity Corrective Gain is 1000 (default);
-  // fractional ranging is not enabled
-  uint16_t range = readReg16Bit(RESULT_RANGE_STATUS + 10);
-
+  if( extraStats == 0 ){
+    // assumptions: Linearity Corrective Gain is 1000 (default);
+    // fractional ranging is not enabled
+    temp = readReg16Bit(RESULT_RANGE_STATUS + 10);
+  } else {
+    // Register map starting at 0x14
+    //     0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+    //    5A 06 BC 04 00 85 00 38 00 19 06 B6 00 00 00 00
+    //   0: Ranging status, uint8_t
+    //   1: ???
+    // 3,2: Effective SPAD return count, uint16_t, fixpoint8.8
+    //   4: 0 ?
+    //   5: ???
+    // 6,7: signal count rate [mcps], uint16_t, fixpoint9.7
+    // 9,8: AmbientRateRtnMegaCps  [mcps], uint16_t, fixpoimt9.7
+    // A,B: uncorrected distance [mm], uint16_t
+    readMulti(0x14, tempBuffer, 12);
+    extraStats->rangeStatus =  tempBuffer[0x00]>>3;
+    extraStats->spadCnt     = (tempBuffer[0x02]<<8) | tempBuffer[0x03];
+    extraStats->signalCnt   = (tempBuffer[0x06]<<8) | tempBuffer[0x07];
+    extraStats->ambientCnt  = (tempBuffer[0x08]<<8) | tempBuffer[0x09];    
+    temp                    = (tempBuffer[0x0A]<<8) | tempBuffer[0x0B];
+    extraStats->rawDistance = temp;
+  }
   writeReg(SYSTEM_INTERRUPT_CLEAR, 0x01);
-
-  return range;
+  return temp;
 }
 
 // Performs a single-shot range measurement and returns the reading in
 // millimeters
 // based on VL53L0X_PerformSingleRangingMeasurement()
-uint16_t readRangeSingleMillimeters(void)
-{
+// extraStats provides additional info for this measurment. Set to 0 if not needed.
+uint16_t readRangeSingleMillimeters( statInfo_t *extraStats ) {
   writeReg(0x80, 0x01);
   writeReg(0xFF, 0x01);
   writeReg(0x00, 0x00);
@@ -820,21 +839,16 @@ uint16_t readRangeSingleMillimeters(void)
   writeReg(0x00, 0x01);
   writeReg(0xFF, 0x00);
   writeReg(0x80, 0x00);
-
   writeReg(SYSRANGE_START, 0x01);
-
   // "Wait until start bit has been cleared"
   startTimeout();
-  while (readReg(SYSRANGE_START) & 0x01)
-  {
-    if (checkTimeoutExpired())
-    {
+  while (readReg(SYSRANGE_START) & 0x01){
+    if (checkTimeoutExpired()){
       g_isTimeout = true;
       return 65535;
     }
   }
-
-  return readRangeContinuousMillimeters();
+  return readRangeContinuousMillimeters( extraStats );
 }
 
 // Did a timeout occur in one of the read functions since the last call to

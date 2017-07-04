@@ -32,13 +32,13 @@ LDFLAGS += -Wl,--relax
 ## for smaller printf
 # LDFLAGS += -Wl,-u,vfprintf -lprintf_min
 
-all: clean $(TARGET).hex $(TARGET).lst
+all: clean $(TARGET).hex $(TARGET).lst bootload
 
 bootload: clean $(TARGET).hex
 	-pkill miniterm*
 	-pkill xterm*
 	avrdude -P $(USB_SERIAL) -b 57600 -c arduino -p atmega328p -U flash:w:$(TARGET).hex
-	xterm -fa monaco -fs 15 -bg black -fg green -hold -e "miniterm.py $(USB_SERIAL) 38400"&
+	xterm -fa monaco -fs 15 -bg black -fg green -hold -e "miniterm.py $(USB_SERIAL) 115200"&
 
 %.o: %.c
 	@echo -----------------------------------------------

@@ -9,9 +9,9 @@
 #define true  1
 #define false 0
 
-
-// Defines /////////////////////////////////////////////////////////////////////
-
+//------------------------------------------------------------
+// Defines
+//------------------------------------------------------------
 // I use a 8-bit number for the address, LSB must be 0 so that I can
 // OR over the last bit correctly based on reads and writes
 #define ADDRESS_DEFAULT 0b01010010
@@ -123,6 +123,19 @@ enum regAddr {
 
 typedef enum { VcselPeriodPreRange, VcselPeriodFinalRange }vcselPeriodType;
 
+// Additional info for one measurement
+typedef struct{
+  uint16_t rawDistance; //uncorrected distance  [mm],   uint16_t
+  uint16_t signalCnt;   //Signal  Counting Rate [mcps], uint16_t, fixpoint9.7
+  uint16_t ambientCnt;  //Ambient Counting Rate [mcps], uint16_t, fixpoint9.7
+  uint16_t spadCnt;     //Effective SPAD return count,  uint16_t, fixpoint8.8
+  uint8_t  rangeStatus; //Ranging status (0-15)
+} statInfo_t;
+
+
+//------------------------------------------------------------
+// API Functions
+//------------------------------------------------------------
 // configures chip i2c and lib for `new_addr` (8 bit, LSB=0)
 void setAddress(uint8_t new_addr);
 // Returns the current I²C address.
@@ -177,10 +190,12 @@ void startContinuous(uint32_t period_ms);
 void stopContinuous(void);
 
 // Returns a range reading in millimeters when continuous mode is active.
-uint16_t readRangeContinuousMillimeters(void);
+// Additional measurement data will be copied into `extraStats` if it is non-zero.
+uint16_t readRangeContinuousMillimeters( statInfo_t *extraStats );
 
 // Performs a single-shot ranging measurement and returns the reading in millimeters.
-uint16_t readRangeSingleMillimeters(void);
+// Additional measurement data will be copied into `extraStats` if it is non-zero.
+uint16_t readRangeSingleMillimeters( statInfo_t *extraStats );
 
 // Sets a timeout period in milliseconds after which read operations will abort 
 // if the sensor is not ready. A value of 0 disables the timeout.
@@ -191,6 +206,20 @@ uint16_t getTimeout(void);
 
 // Indicates whether a read timeout has occurred since the last call to timeoutOccurred().
 bool timeoutOccurred(void);
+
+//---------------------------------------------------------
+// I2C communication Functions
+//---------------------------------------------------------
+void writeReg(uint8_t reg, uint8_t value);        // Write an 8-bit register
+void writeReg16Bit(uint8_t reg, uint16_t value);  // Write a 16-bit register
+void writeReg32Bit(uint8_t reg, uint32_t value);  // Write a 32-bit register
+uint8_t readReg(uint8_t reg);                     // Read an 8-bit register
+uint16_t readReg16Bit(uint8_t reg);               // Read a 16-bit register
+uint32_t readReg32Bit(uint8_t reg);               // Read a 32-bit register
+// Write `count` number of bytes from `src` to the sensor, starting at `reg`
+void writeMulti(uint8_t reg, uint8_t const *src, uint8_t count);
+// Read `count` number of bytes from the sensor, starting at `reg`, to `dst`
+void readMulti(uint8_t reg, uint8_t *dst, uint8_t count);
 
 // TCC: Target CentreCheck
 // MSRC: Minimum Signal Rate Check

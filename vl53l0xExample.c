@@ -34,6 +34,7 @@ void init(void) {
 }
 
 int main(){
+	statInfo_t xTraStats;
 	init();
 
 	debug_str("\n\n---------------------------------------\n");
@@ -48,16 +49,23 @@ int main(){
 	// increase laser pulse periods (defaults are 14 and 10 PCLKs)
 	// setVcselPulsePeriod(VcselPeriodPreRange, 18);
 	// setVcselPulsePeriod(VcselPeriodFinalRange, 14);
-	// setMeasurementTimingBudget( 200 * 1000UL );	// 200 ms per measurement
-	startContinuous(0);
+	setMeasurementTimingBudget( 500 * 1000UL );		// integrate over 500 ms per measurement
 
-	// Main loop
+	// Main loop	
 	while(1){
-		debug_str("\r");
-		debug_dec( readRangeContinuousMillimeters() );
-		debug_str(" mm  ");
+		readRangeSingleMillimeters( &xTraStats );	// blocks until measurement is finished
+	  	debug_str(   "\n\nstatus  = ");
+		debug_hex( xTraStats.rangeStatus, 1 );
+		debug_str(     "\ndist    = ");
+		debug_dec( xTraStats.rawDistance );
+	 	debug_str(  " mm\nsignCnt = ");
+		debug_dec_fix( xTraStats.signalCnt,  7 );
+		debug_str(" MCPS\nambiCnt = ");
+		debug_dec_fix( xTraStats.ambientCnt, 7 );
+		debug_str(" MCPS\nspadCnt = ");
+		debug_dec_fix( xTraStats.spadCnt,    8 );
 		if ( timeoutOccurred() ) {
-			debug_str(" !!! Timeout !!! ");
+			debug_str(" !!! Timeout !!! \n");
 		}
 	}
 	return 0;

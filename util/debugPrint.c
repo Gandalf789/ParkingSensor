@@ -6,7 +6,7 @@
 #if DEBUGPRINT_ENABLED
 
 void debugInit() {
-	// Init UART
+    // Init UART
     PRR &= ~(1<<PRUSART0);
     UCSR0B |= (1<<TXEN0) | (1<<RXEN0);
     UBRR0H = UBRRH_VALUE;
@@ -19,29 +19,29 @@ void debugInit() {
 }
 
 void debug_putc( uint8_t c ) {
-	while(!(UCSR0A & (1 << UDRE0)));    /* wait for data register empty */
-	UDR0 = c;
+    while(!(UCSR0A & (1 << UDRE0)));    /* wait for data register empty */
+    UDR0 = c;
 }
 
 uint8_t hex2Nibble( uint8_t c ){
-	if(  c>='a' && c<='f' ){
-		return( c - 'a' + 10 );
-	}
-	if(  c>='0' && c<='9' ){
-		return( c - '0' );
-	}
-	return 0xFF;
+    if(  c>='a' && c<='f' ){
+        return( c - 'a' + 10 );
+    }
+    if(  c>='0' && c<='9' ){
+        return( c - '0' );
+    }
+    return 0xFF;
 }
 
 // Print string from flash
 void debug_str_internal( const char *p ){
     uint8_t c;
-	while (( c=pgm_read_byte( p++ ) )){
-		debug_putc( c );
-		if( c=='\n' ){
-			debug_putc('\r');
-		}
-	}
+    while (( c=pgm_read_byte( p++ ) )){
+        debug_putc( c );
+        if( c=='\n' ){
+            debug_putc('\r');
+        }
+    }
 }
 
 void debug_dec( uint32_t val ){
@@ -53,6 +53,18 @@ void debug_dec( uint32_t val ){
     }
     while (p != buffer) {
         debug_putc( '0' + *(--p) );
+    }
+}
+
+void debug_dec_fix( uint32_t val, const uint8_t nFract ){
+    uint32_t fractMask = ((1<<nFract)-1);   //For masking the fractional part
+    debug_dec( val>>nFract );               //Print the integer part
+    debug_putc('.');
+    val &= fractMask;                       //Convert to fractional part
+    while( val > 0 ) {
+        val *= 10;
+        debug_putc( '0' + (val>>nFract) );  //Print digit
+        val &= fractMask;                   //Convert to fractional part
     }
 }
 
@@ -72,8 +84,6 @@ void hexDump( uint8_t *buffer, uint16_t nBytes ){
         debug_hex(*buffer++, 2);
         debug_str(" ");
     }
-    debug_str("\n");
 }
-
 
 #endif
