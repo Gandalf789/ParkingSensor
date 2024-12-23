@@ -1,73 +1,44 @@
-TARGET      = vl53l0xExample
-USB_SERIAL  = /dev/ttyUSB0
-MCU         = atmega328p
-F_CPU       = 8000000UL
-SRCS        = $(wildcard *.c) $(wildcard util/*.c)
-OBJS        = $(subst .c,.o,$(SRCS))
-INC         = -I. -Iutil
-GIT_VERSION = $(shell git describe --abbrev=4 --dirty --always --tags)
-TOOLS_PREFIX = avr-
-CC          = $(TOOLS_PREFIX)gcc
-#--------------------------------
-# Compiler flags
-#--------------------------------
-## Warnings, standards
-CFLAGS      = -O2 -Wall -std=gnu11
-## Hardware definitions
-CFLAGS     += -DF_CPU=$(F_CPU) -mmcu=$(MCU) -DGIT_VERSION=\"$(GIT_VERSION)\"
-## Use short (8-bit) data types 
-CFLAGS     += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
-## Splits up object files per function
-CFLAGS     += -ffunction-sections -fdata-sections 
-#--------------------------------
-# Linker flags
-#--------------------------------
-LDFLAGS     = -Wl,-Map=$(TARGET).map,--cref
-# Optional, but often ends up with smaller code
-LDFLAGS    += -Wl,--gc-sections
-## Relax shrinks code even more, but makes disassembly messy
-LDFLAGS += -Wl,--relax
-## for floating-point printf
-# LDFLAGS += -Wl,-u,vfprintf -lprintf_flt -lm
-## for smaller printf
-# LDFLAGS += -Wl,-u,vfprintf -lprintf_min
+# simple makefile for avr-gcc projects
 
-all: clean $(TARGET).hex $(TARGET).lst bootload
+# what is the final binary called
+PROGRAM = vl53l0xExample
 
-bootload: clean $(TARGET).hex
-	-pkill miniterm*
-	-pkill xterm*
-	avrdude -P $(USB_SERIAL) -b 57600 -c arduino -p atmega328p -U flash:w:$(TARGET).hex
-	xterm -fa monaco -fs 15 -bg black -fg green -hold -e "miniterm.py $(USB_SERIAL) 115200"&
+# flags to pass to the C compiler
+# -mmcu should be set to the CPU type
+# -DF_CPU should be the clock speed in Hz
+# you can add additional -D statements which work just like #define in the code
+CFLAGS = -Wall -I. -g -Os -mmcu=atmega328p -DF_CPU=16000000UL
 
-%.o: %.c
-	@echo -----------------------------------------------
-	@echo  Compiling $@
-	@echo -----------------------------------------------
-	$(CC) $(INC) $(CFLAGS) -o $@ -c $<
+# Any other files that aren't C source, that trigger a rebuild
+DEPS = VL53L0X.h i2cmaster.h millis.h
 
-%.lst: %.elf
-	@echo -----------------------------------------------
-	@echo  Generating assembly listing
-	@echo -----------------------------------------------	
-	$(TOOLS_PREFIX)objdump -h -S -z $< > $@
+# These are the object files that gcc will create, from your .c files
+# you need one for each of your C source files
+OBJ = millis.o VL53L0X.o i2cmaster.o vl53l0xExample.o 
 
-%.hex: %.elf
-	@echo -----------------------------------------------
-	@echo  Generating intel hex file
-	@echo -----------------------------------------------		
-	$(TOOLS_PREFIX)objcopy -O ihex -R .eeprom $< $@
+# magic happens below here
+# "make all" creates a burnable hex file
+all: $(PROGRAM).hex
 
-$(TARGET).elf: $(OBJS)
-	@echo -----------------------------------------------
-	@echo  Linking together an application .elf file
-	@echo -----------------------------------------------
-	$(CC) -mmcu=$(MCU) $(LDFLAGS) -o $@ $^
-	chmod -x $@
-	$(TOOLS_PREFIX)size $@
+# this turns the .elf binary into .hex for avrdude
+$(PROGRAM).hex: $(PROGRAM).elf
+	avr-objcopy -O ihex $< $@
+
+# this builds and links the .o files into a .elf binary
+$(PROGRAM).elf: $(OBJ)
+	avr-gcc $(CFLAGS) -o $@ $^
+
+# this compiles the .c files into .o files
+%.o: %.c $(DEPS)
+	avr-gcc $(CFLAGS) -o $@ -c $<
+
+# this calls the first macro we defined to create a .hex file
+# then it runs avrdude to burn it to your Arduino
+
+burn:   $(PROGRAM).hex
+	avrdude -F -v -c arduino -p ATMEGA328P -P /dev/ttyUSB0 -b 115200 -U flash:w:$(PROGRAM).hex
 
 clean:
-	rm -f $(TARGET).hex $(TARGET).lst $(TARGET).elf $(TARGET).map $(OBJS)
-
-.PHONY: clean all
-#.INTERMEDIATE: $(TARGET).lst $(TARGET).elf
+	rm *.o
+	rm *.elf
+	rm *.hex

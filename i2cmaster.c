@@ -7,10 +7,10 @@
 * Usage:    API compatible with I2C Software Library i2cmaster.h
 **************************************************************************/
 #include <inttypes.h>
-#include <compat/twi.h>
-#include "debugPrint.h"
+#include <util/twi.h>
 #include "i2cmaster.h"
 
+#define F_CPU 16000000UL
 
 /*************************************************************************
  Initialization of the I2C bus interface. Need to be called only once
@@ -40,7 +40,6 @@ unsigned char i2c_start(unsigned char address){
         }
     }
     if( timeout == 0 ){
-        debug_str("i2c_start(): timeout\n");
         return 1;
     }
     timeout=0xFFFF;
@@ -60,7 +59,6 @@ unsigned char i2c_start(unsigned char address){
         }
     }
     if( timeout == 0 ){
-        debug_str("i2c_start(): timeout\n");
         return 1;
     }
 	// check value of TWI Status Register. Mask prescaler bits.
@@ -144,7 +142,6 @@ void i2c_stop(void){
             return;
         }
     }
-    debug_str("i2c_stop(): timeout\n");
 }/* i2c_stop */
 
 
@@ -170,14 +167,12 @@ unsigned char i2c_write( unsigned char data ){
         }
     }
     if( timeout == 0 ){
-        debug_str("i2c_write(): timeout\n");
         return 1;
     }
 
 	// check value of TWI Status Register. Mask prescaler bits
 	twst = TW_STATUS & 0xF8;
 	if( twst != TW_MT_DATA_ACK ){
-		debug_str("i2c_write(): com error\n");
 		return 1;
 	}
 	return 0;
@@ -198,7 +193,6 @@ unsigned char i2c_readAck(void){
 		    return TWDR;
 		}
 	}
-    debug_str("i2c_readAck(): timeout\n");
     return 0;
 }/* i2c_readAck */
 
@@ -216,20 +210,15 @@ unsigned char i2c_readNak(void){
 			return TWDR;
 		}
 	}
-    debug_str("i2c_readNak(): timeout\n");
 	return 0;
 }/* i2c_readNak */
 
 // Print out all the active I2C addresses on the bus
 void searchI2C(){
 	uint8_t devAdr;
-	debug_str("Discovered I2C addresses: ");
 	for( devAdr=0; devAdr<=127; devAdr++ ){
 		if( !i2c_start( (devAdr<<1) | I2C_WRITE ) ){
-			debug_hex(devAdr, 2);
-            debug_putc(' ');
 		}
 		i2c_stop();                             // set stop conditon = release bus
 	}
-	debug_str("done\n");
 }
