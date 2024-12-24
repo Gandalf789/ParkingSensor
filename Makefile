@@ -10,11 +10,11 @@ PROGRAM = vl53l0xExample
 CFLAGS = -Wall -I. -g -Os -mmcu=atmega328p -DF_CPU=16000000UL
 
 # Any other files that aren't C source, that trigger a rebuild
-DEPS = VL53L0X.h i2cmaster.h millis.h
+DEPS = VL53L0X.h i2cmaster.h millis.h display.h
 
 # These are the object files that gcc will create, from your .c files
 # you need one for each of your C source files
-OBJ = millis.o VL53L0X.o i2cmaster.o vl53l0xExample.o 
+OBJ = millis.o VL53L0X.o i2cmaster.o vl53l0xExample.o display.o
 
 # magic happens below here
 # "make all" creates a burnable hex file
