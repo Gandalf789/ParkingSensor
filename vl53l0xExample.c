@@ -7,7 +7,7 @@
  *  Demonstrate the VL53I0X distance sensor.
  * 
  */
-#include <stdint.h>
+//#include <stdint.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "i2cmaster.h"
@@ -20,8 +20,10 @@ void init(void) {
 	sei();
 }
 
+statInfo_t xTraStats;
+
+
 int main(){
-	statInfo_t xTraStats;
 	init();
 
 	DDRD |= (1<<7);
