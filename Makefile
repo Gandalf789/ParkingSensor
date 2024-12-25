@@ -1,7 +1,7 @@
 # simple makefile for avr-gcc projects
 
 # what is the final binary called
-PROGRAM = vl53l0xExample
+PROGRAM = main
 
 # flags to pass to the C compiler
 # -mmcu should be set to the CPU type
@@ -14,7 +14,7 @@ DEPS = VL53L0X.h i2cmaster.h millis.h display.h
 
 # These are the object files that gcc will create, from your .c files
 # you need one for each of your C source files
-OBJ = millis.o VL53L0X.o i2cmaster.o vl53l0xExample.o display.o
+OBJ = millis.o VL53L0X.o i2cmaster.o main.o display.o
 
 # magic happens below here
 # "make all" creates a burnable hex file

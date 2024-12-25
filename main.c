@@ -13,14 +13,15 @@ statInfo_t xTraStats;
 
 int main()
 {
-    DDRD |= 0b10111111;
-    DDRB |= (1<<0) | (1<<4) | (1<<5);
-    DDRC |= (1<<3) | (1<<2);
     i2c_init();
 	initMillis();
 	sei();
 
-    initVL53L0X(1);
+	DDRD |= 0b11111111;
+    DDRB |= 0b00110011;
+
+    initVL53L0X(1); 
+	
 	// lower the return signal rate limit (default is 0.25 MCPS)
 	// setSignalRateLimit(0.1);
 	// increase laser pulse periods (defaults are 14 and 10 PCLKs)
@@ -30,10 +31,13 @@ int main()
 
 	while(1){
 		readRangeSingleMillimeters( &xTraStats );	// blocks until measurement is finished
+		//TODO
+		// put the measurement in a ISR
 		Display(1, xTraStats.rawDistance % 10, 0);
 		Display(2, (xTraStats.rawDistance/10) % 10, 0);
 		Display(3, (xTraStats.rawDistance/ 100) % 10, 0);
 		Display(4, (xTraStats.rawDistance/1000) % 10, 0);
+
 
 
 		if ( timeoutOccurred() ) {
