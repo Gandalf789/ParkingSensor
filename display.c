@@ -70,6 +70,6 @@ void Display(int digit, int val, int pt)
         PORTD |= (1<<0);
     }
 
-    _delay_ms(4);
+    //_delay_ms(4);
 
 }

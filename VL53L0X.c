@@ -320,9 +320,9 @@ bool initVL53L0X( bool io_2v8 ){
   // "Set interrupt config to new sample ready"
   // -- VL53L0X_SetGpioConfig() begin
 
-  writeReg(SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04);
-  writeReg(GPIO_HV_MUX_ACTIVE_HIGH, readReg(GPIO_HV_MUX_ACTIVE_HIGH) & ~0x10); // active low
-  writeReg(SYSTEM_INTERRUPT_CLEAR, 0x01);
+ writeReg(SYSTEM_INTERRUPT_CONFIG_GPIO, 0x04);
+ writeReg(GPIO_HV_MUX_ACTIVE_HIGH, readReg(GPIO_HV_MUX_ACTIVE_HIGH) & ~0x10); // active low
+ writeReg(SYSTEM_INTERRUPT_CLEAR, 0x01);
 
   // -- VL53L0X_SetGpioConfig() end
 

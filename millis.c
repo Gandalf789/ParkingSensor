@@ -20,12 +20,12 @@ void initMillis() {
 // Return ellapsed time since startup in [ms]
 uint32_t millis(){
     uint32_t m;
-    uint8_t oldSREG = SREG;
+    //uint8_t oldSREG = SREG;
      // disable interrupts while we read timer0_millis or we might get an
     // inconsistent value (e.g. in the middle of a write to timer0_millis)
-    cli();
+    //cli();
     m = g_Millis;
-    SREG = oldSREG;
+    //SREG = oldSREG;
     return m;
 }
 

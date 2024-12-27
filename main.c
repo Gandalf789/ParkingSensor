@@ -9,11 +9,10 @@
 #include "timers.h"
 
 
-statInfo_t xTraStats;
 
 volatile uint16_t ms = 0, s = 0, m = 0;
 volatile uint16_t val = 0;
-volatile int digit = 0;
+volatile uint16_t temp = 0;
 
 ISR(TIMER1_COMPA_vect)
 {
@@ -21,21 +20,22 @@ ISR(TIMER1_COMPA_vect)
    if (ms == 1000){
       s++;
       ms = 0;
-	  startContinuous(0);
+
       if(s == 60){
          s = 0;
          m++;
    		}
    	}
-
-	if( ms == 20)
+	
+	if((ms%400) == 0)
 	{
-		stopContinuous();
+		val = readRangeSingleMillimeters(0);
 		ms++;
 	}
 
 	else 
 	{
+
 		ms++;	
 	}
 
@@ -61,7 +61,7 @@ int main()
 	DDRD |= 0b11111111;
     DDRB |= 0b00110011;
 
-//	DDRB |= (1<<3); //OCR2A 
+	DDRB |= (1<<3); //OCR2A 
 
    	initVL53L0X(1); 
 	
@@ -70,17 +70,24 @@ int main()
 	// increase laser pulse periods (defaults are 14 and 10 PCLKs)
 	// setVcselPulsePeriod(VcselPeriodPreRange, 18);
 	// setVcselPulsePeriod(VcselPeriodFinalRange, 14);
-	//setMeasurementTimingBudget( 500 * 1000UL );		// integrate over 500 ms per measurement
+	setMeasurementTimingBudget( 60 * 1000UL );		// integrate over 500 ms per measurement
 
-	//startContinuous(0);
 
 	while(1){
 
-		val = readRangeContinuousMillimeters(&xTraStats);
-		Display(1,s%10, 0); 
-		Display(2,(s/10)%10, 1); 
-      	Display(3, val%10, 0); 
-      	Display(4,(val/10)%10, 0); 
+
+		if(val < 500)
+		{
+			Display(1,val%10, 0); 
+      		Display(2, (val/10)%10, 0); 
+      		Display(3,(val/100)%10, 0); 
+			Display(4,(val/1000)%10, 0); 
+
+		}
+		else Display(4, 1000, 0); //wtf is wrong with this one
+		// it shows 0 instead of showing nothing 
+		
+
   
 		//TODO
 		// // put the measurement in a ISR
@@ -90,17 +97,17 @@ int main()
 		// Display(4, (xTraStats.rawDistance/1000) % 10, 0);
 		//readRangeSingleMillimeters( &xTraStats );	// blocks until measurement is finished
 
-		// if(xTraStats.rawDistance < 100)
-		// {
-		// 	DDRB |= (1<<3);
-		// }
-		// else
-		// {
-		// 	DDRB &= ~(1<<3);
-		// }
+		if(val < 100)
+		{
+			DDRB |= (1<<3);
+		}
+		else
+		{
+			DDRB &= ~(1<<3);
+		}
 		
-		// if ( timeoutOccurred() ) {
-		// }
+		if ( timeoutOccurred() ) {
+		}
 	}
 	return 0;
 }
