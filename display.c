@@ -2,6 +2,8 @@
 
 #include "display.h"
 
+//  PB5:4 & PB1:0 are the digit control
+//  PORTD controls the 8 segments
 
 void Display(int digit, int val, int pt)
 {
