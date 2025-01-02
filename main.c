@@ -27,15 +27,54 @@ ISR(TIMER1_COMPA_vect)
    		}
    	}
 	
-	if((ms%400) == 0)
+	if((ms%300) == 0)
 	{
 		val = readRangeSingleMillimeters(0);
 		ms++;
 	}
 
+
+	if(((ms%(val/10 + 40)) == 0) && (val <1500))
+	{
+		DDRB ^= (1<<3);
+		ms++;
+	}
+
+	if(val >= 1500)
+	{
+		DDRB &= ~(1<<3);
+		ms++;
+	}
+
+	// if((ms%100 == 0) && (val < 400))
+	// {
+	// 	DDRB ^= (1<<3);
+	// 	ms++;
+	// }
+	
+	// if((ms%80 == 0) && (val < 300))
+	// {
+	// 	DDRB ^= (1<<3);
+	// 	ms++;
+	// }
+
+	// if((ms%60 == 0) && (val < 200))
+	// {
+	// 	DDRB ^= (1<<3);
+	// 	ms++;
+	// }
+
+	// if((ms%40 == 0) && (val < 100))
+	// {
+	// 	DDRB ^= (1<<3);
+	// 	ms++;
+	// }
+
+
+
+
 	else 
 	{
-
 		ms++;	
 	}
 
@@ -66,17 +105,18 @@ int main()
    	initVL53L0X(1); 
 	
 	// lower the return signal rate limit (default is 0.25 MCPS)
-	//setSignalRateLimit(0.25);
+	//setSignalRateLimit(0.01);
 	// increase laser pulse periods (defaults are 14 and 10 PCLKs)
 	// setVcselPulsePeriod(VcselPeriodPreRange, 18);
-	// setVcselPulsePeriod(VcselPeriodFinalRange, 14);
-	setMeasurementTimingBudget( 60 * 1000UL );		// integrate over 500 ms per measurement
+	// setVcselPulsePeriod(VcselPeriodFinalRange, 10);
+	setMeasurementTimingBudget( 50 * 1000UL );		// integrate over 500 ms per measurement
 
+	DDRB ^= (1<<3);
 
 	while(1){
 
 
-		if(val < 500)
+		if(val < 1500)
 		{
 			Display(1,val%10, 0); 
       		Display(2, (val/10)%10, 0); 
@@ -97,14 +137,14 @@ int main()
 		// Display(4, (xTraStats.rawDistance/1000) % 10, 0);
 		//readRangeSingleMillimeters( &xTraStats );	// blocks until measurement is finished
 
-		if(val < 100)
-		{
-			DDRB |= (1<<3);
-		}
-		else
-		{
-			DDRB &= ~(1<<3);
-		}
+		// if(val < 100)
+		// {
+		// 	DDRB |= (1<<3);
+		// }
+		// else
+		// {
+		// 	DDRB &= ~(1<<3);
+		// }
 		
 		if ( timeoutOccurred() ) {
 		}

@@ -30,7 +30,7 @@ void init_PWM2A()
 
   TCNT2 = 0;
 
-  OCR2A = 125; 
+  OCR2A = 125;
 
   TCCR2A |= (1<<WGM21) | (1<<WGM20); // Fast PWM mode,
 
@@ -45,8 +45,8 @@ void init_PWM2A()
 void init_timer1()
 {
    TCNT1 = 0;
-   OCR1A = 2000;
+   OCR1A = 250;
    TCCR1B |= (1<<WGM12); // CTC mode
-   TCCR1B |= (1<<CS11); // PRESCALER TO 8
+   TCCR1B |= (1<<CS11) | (1<<CS10); // PRESCALER TO 64
    TIMSK1 |= (1<<OCIE1A); 
 }
